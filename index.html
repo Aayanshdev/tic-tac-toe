@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maha Yodha - Epic Pen Battle Arena</title>
+    <meta name="description" content="Maha Yodha - An epic, animated 4-player Pen Flicking Battle Arena game featuring sleek warrior pens, AI mode, special powers, and dynamic physics.">
+    <!-- Google Fonts for Epic Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div id="app" class="game-container">
+        <!-- Background Ambient Glow & Sparks -->
+        <div class="ambient-overlay"></div>
+
+        <!-- Header / Navigation Bar -->
+        <header class="game-header">
+            <div class="brand">
+                <div class="brand-logo">⚔️</div>
+                <div class="brand-text">
+                    <h1>MAHA YODHA</h1>
+                    <span class="sub-title">THE LEGENDARY PEN BATTLE</span>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <button id="autoPlayHeaderBtn" class="btn btn-secondary" title="Toggle Auto Play All AI">
+                    <span>🤖 AUTO-PLAY ALL AI</span>
+                </button>
+                <button id="soundToggleBtn" class="icon-btn" title="Toggle Sound">
+                    <span class="icon">🔊</span>
+                </button>
+                <button id="rulesBtn" class="icon-btn" title="Game Rules">
+                    <span class="icon">📜</span>
+                </button>
+                <button id="restartHeaderBtn" class="btn btn-secondary">
+                    <span>🔄 Configure Battle</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Game Arena Section -->
+        <main class="arena-wrapper">
+            <!-- Top Player Cards (Players 1 & 2) -->
+            <div class="players-bar top-bar">
+                <div class="player-card" id="card-p1" data-player="1">
+                    <div class="avatar-ring">
+                        <span class="avatar">🦅</span>
+                        <div class="active-badge">ACTIVE</div>
+                    </div>
+                    <div class="player-info">
+                        <span class="yodha-name">GARUDA</span>
+                        <button class="player-type-toggle" id="toggle-p1" title="Toggle Human / AI">👤 HUMAN</button>
+                        <div class="hp-bar-container" title="Pen HP">
+                            <div class="hp-bar" id="hp-p1" style="width: 100%;"></div>
+                        </div>
+                    </div>
+                    <button class="ability-btn" id="ability-p1" title="Lightning Rush">⚡ POWER</button>
+                </div>
+
+                <div class="turn-announcer" id="turnAnnouncer">
+                    <span class="turn-label">CURRENT TURN</span>
+                    <span class="turn-player-name" id="activePlayerName">GARUDA'S TURN</span>
+                </div>
+
+                <div class="player-card" id="card-p2" data-player="2">
+                    <div class="avatar-ring">
+                        <span class="avatar">🔥</span>
+                        <div class="active-badge">ACTIVE</div>
+                    </div>
+                    <div class="player-info">
+                        <span class="yodha-name">AGNI</span>
+                        <button class="player-type-toggle" id="toggle-p2" title="Toggle Human / AI">🤖 AI BOT</button>
+                        <div class="hp-bar-container" title="Pen HP">
+                            <div class="hp-bar" id="hp-p2" style="width: 100%;"></div>
+                        </div>
+                    </div>
+                    <button class="ability-btn" id="ability-p2" title="Inferno Burst">🔥 POWER</button>
+                </div>
+            </div>
+
+            <!-- Canvas Arena Frame -->
+            <div class="canvas-container" id="canvasContainer">
+                <canvas id="gameCanvas" width="900" height="580"></canvas>
+                
+                <!-- Floating Action Banner / Toast -->
+                <div id="gameToast" class="game-toast hidden">KNOCKOUT!</div>
+                
+                <!-- Aiming Visual Overlay helper for Touch/Mouse -->
+                <div id="aimHint" class="aim-hint-overlay">
+                    <span>💡 Tip: Drag on your pen OR use the Shoot Panel below to aim & flick!</span>
+                </div>
+            </div>
+
+            <!-- Bottom Player Cards & Control Deck -->
+            <div class="bottom-deck">
+                <!-- Player 3 Card -->
+                <div class="player-card" id="card-p3" data-player="3">
+                    <div class="avatar-ring">
+                        <span class="avatar">🌪️</span>
+                        <div class="active-badge">ACTIVE</div>
+                    </div>
+                    <div class="player-info">
+                        <span class="yodha-name">VAYU</span>
+                        <button class="player-type-toggle" id="toggle-p3" title="Toggle Human / AI">🤖 AI BOT</button>
+                        <div class="hp-bar-container" title="Pen HP">
+                            <div class="hp-bar" id="hp-p3" style="width: 100%;"></div>
+                        </div>
+                    </div>
+                    <button class="ability-btn" id="ability-p3" title="Whirlwind Strike">🌪️ POWER</button>
+                </div>
+
+                <!-- Shoot & Aim Control Panel -->
+                <div class="control-panel" id="controlPanel">
+                    <div class="aim-controls">
+                        <div class="dial-container">
+                            <div class="slider-header">
+                                <span>🎯 AIM ANGLE</span>
+                                <span id="angleValue" class="val-highlight">0°</span>
+                            </div>
+                            <input type="range" id="aimAngleSlider" min="0" max="360" value="0">
+                        </div>
+                        <div class="power-meter-container">
+                            <div class="slider-header">
+                                <span>⚡ SHOT POWER</span>
+                                <span id="powerValue" class="val-highlight">50%</span>
+                            </div>
+                            <div class="power-bar-bg">
+                                <div class="power-bar-fill" id="powerBarFill" style="width: 50%;"></div>
+                            </div>
+                            <input type="range" id="aimPowerSlider" min="15" max="100" value="50">
+                        </div>
+                    </div>
+
+                    <!-- Prominent Animated Shoot Button -->
+                    <button id="shootBtn" class="shoot-btn">
+                        <span class="shoot-sparkles">✨</span>
+                        <span class="shoot-text">SHOOT PEN!</span>
+                        <span class="shoot-sub">FLICK TO STRIKE</span>
+                    </button>
+                </div>
+
+                <!-- Player 4 Card -->
+                <div class="player-card" id="card-p4" data-player="4">
+                    <div class="avatar-ring">
+                        <span class="avatar">☀️</span>
+                        <div class="active-badge">ACTIVE</div>
+                    </div>
+                    <div class="player-info">
+                        <span class="yodha-name">SURYA</span>
+                        <button class="player-type-toggle" id="toggle-p4" title="Toggle Human / AI">🤖 AI BOT</button>
+                        <div class="hp-bar-container" title="Pen HP">
+                            <div class="hp-bar" id="hp-p4" style="width: 100%;"></div>
+                        </div>
+                    </div>
+                    <button class="ability-btn" id="ability-p4" title="Solar Flare">☀️ POWER</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Mode Selection / Start Modal -->
+        <div id="modeModal" class="modal-backdrop hidden">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h2>ENTER THE WARRIOR ARENA</h2>
+                    <p>Configure Player vs AI Setup for all 4 Yodhas</p>
+                </div>
+
+                <div class="mode-grid">
+                    <div class="mode-option selected" data-mode="1v3">
+                        <div class="mode-icon">👤 vs 🤖🤖🤖</div>
+                        <h3>1 Player vs 3 AI Bots</h3>
+                        <p>You control Garuda Pen against 3 smart Yodha AI Bots!</p>
+                    </div>
+
+                    <div class="mode-option" data-mode="2v2">
+                        <div class="mode-icon">👤👤 vs 🤖🤖</div>
+                        <h3>2 Players vs 2 AI Bots</h3>
+                        <p>Player 1 & Player 2 control pens against 2 AI Bots!</p>
+                    </div>
+
+                    <div class="mode-option" data-mode="4ai">
+                        <div class="mode-icon">🤖🤖 vs 🤖🤖</div>
+                        <h3>4 AI Spectate Match</h3>
+                        <p>Watch 4 intelligent Yodha AI Bots battle automatically in epic Pen War!</p>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button id="startGameBtn" class="btn btn-primary btn-large">
+                        <span>🚀 START MAHA BATTLE</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- How To Play Modal -->
+        <div id="rulesModal" class="modal-backdrop hidden">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h2>📜 MAHA YODHA RULES</h2>
+                </div>
+                <div class="rules-content">
+                    <div class="rule-item">
+                        <span class="rule-num">1</span>
+                        <div>
+                            <strong>Aim & Charge Power:</strong>
+                            <p>Use the Aim Slider or drag directly on your warrior pen to set angle. Adjust shot power using slider or drag distance.</p>
+                        </div>
+                    </div>
+                    <div class="rule-item">
+                        <span class="rule-num">2</span>
+                        <div>
+                            <strong>Press Shoot Pen:</strong>
+                            <p>Click the big glowing <strong>SHOOT PEN</strong> button to flick your Yodha pen across the mahogany arena table!</p>
+                        </div>
+                    </div>
+                    <div class="rule-item">
+                        <span class="rule-num">3</span>
+                        <div>
+                            <strong>Knock Out Opponents:</strong>
+                            <p>Hit opponent pens to knock them off the table edges into the abyss or deplete their HP from violent collisions.</p>
+                        </div>
+                    </div>
+                    <div class="rule-item">
+                        <span class="rule-num">4</span>
+                        <div>
+                            <strong>Special Yodha Powers:</strong>
+                            <p>Each Yodha has a unique skill (Lightning Shock, Inferno Push, Whirlwind, Solar Smash). Activate when ready for a powerful bonus!</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button id="closeRulesBtn" class="btn btn-primary">
+                        <span>GOT IT, LET'S PLAY!</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Victory Modal -->
+        <div id="victoryModal" class="modal-backdrop hidden">
+            <div class="modal-card victory-card">
+                <div class="trophy-animation">🏆</div>
+                <h1 id="victoryTitle">MAHA YODHA CHAMPION</h1>
+                <h2 id="winnerName" class="winner-name-highlight">GARUDA VICTORY!</h2>
+                <p id="victoryDetails">Knocked out all 3 opponents to conquer the arena.</p>
+
+                <div class="modal-actions">
+                    <button id="playAgainBtn" class="btn btn-primary btn-large">
+                        <span>⚔️ PLAY AGAIN</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Game Scripts -->
+    <script src="js/audio.js"></script>
+    <script src="js/physics.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
